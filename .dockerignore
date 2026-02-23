@@ -1,0 +1,17 @@
+# Only schemas/ and entrypoint go into the image
+generators/
+ontology/
+metadata/
+agent/
+tests/
+config/
+docs/
+.git/
+.github/
+.gitignore
+.dockerignore
+README.md
+README.source.md
+LICENSE
+docker-compose.yml
+docker-compose.original.yml

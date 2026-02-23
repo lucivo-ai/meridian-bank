@@ -1,0 +1,11 @@
+# Database dumps (fetched from S3 at build time)
+data/*.dump
+data/*.sql.gz
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
