@@ -1,0 +1,29 @@
+database:
+  host: localhost
+  port: 5433
+  name: meridian_bank
+  user: meridian
+  password: meridian_dev
+
+generation:
+  seed: 42
+  customer_count: 50000
+  transaction_months: 6
+  transaction_date_start: "2024-07-01"
+  transaction_date_end: "2024-12-31"
+  avg_transactions_per_account_per_month: 12
+  warehouse_batch_date: "2025-01-01"
+
+  # Distribution controls
+  personal_vs_business_ratio: 0.85
+  active_account_ratio: 0.92
+  arrears_ratio: 0.05
+  aml_flag_ratio: 0.02
+  complaint_ratio: 0.04
+
+  # Intentional data quality issues
+  missing_postcode_count: 500
+  zero_amount_transactions: 100
+  orphaned_accounts: 15
+  stale_table_count: 3
+  gl_imbalance_batch: "BATCH-2024-ERR-001"

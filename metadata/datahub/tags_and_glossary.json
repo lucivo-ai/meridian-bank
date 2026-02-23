@@ -1,0 +1,91 @@
+{
+  "classification_tags": {
+    "PII": {
+      "description": "Personally Identifiable Information — subject to GDPR and data protection regulations",
+      "columns": [
+        "core_banking.customers.first_name", "core_banking.customers.last_name",
+        "core_banking.customers.full_name", "core_banking.customers.date_of_birth",
+        "core_banking.customers.ni_number", "core_banking.customers.email",
+        "core_banking.customers.phone_mobile", "core_banking.customers.phone_home",
+        "core_banking.addresses.line1", "core_banking.addresses.line2",
+        "core_banking.addresses.city", "core_banking.addresses.postcode",
+        "crm.contacts.contact_name", "crm.contacts.email_primary",
+        "crm.contacts.phone_primary",
+        "warehouse_core.dim_customer.full_name", "warehouse_core.dim_customer.email",
+        "warehouse_core.dim_customer.date_of_birth", "warehouse_core.dim_customer.postcode",
+        "warehouse_reporting.rpt_customer_360.full_name", "warehouse_reporting.rpt_customer_360.postcode"
+      ]
+    },
+    "Sensitive": {
+      "description": "Sensitive financial data — restricted access, audit logged",
+      "columns": [
+        "core_banking.accounts.account_number", "core_banking.accounts.sort_code",
+        "core_banking.accounts.iban",
+        "core_banking.account_balances.ledger_balance", "core_banking.account_balances.available_balance",
+        "core_banking.transactions.amount", "core_banking.transactions.balance_after",
+        "risk.credit_scores.score_value", "risk.credit_scores.score_band",
+        "risk.aml_alerts.trigger_amount", "risk.aml_alerts.risk_score",
+        "risk.aml_cases.total_suspicious_amount",
+        "gl.gl_entries.debit_amount", "gl.gl_entries.credit_amount"
+      ]
+    },
+    "Financial": {
+      "description": "Financial/monetary values — requires reconciliation controls",
+      "columns": [
+        "core_banking.transactions.amount",
+        "core_banking.account_balances.ledger_balance",
+        "core_banking.accounts.credit_limit", "core_banking.accounts.overdraft_limit",
+        "gl.gl_entries.debit_amount", "gl.gl_entries.credit_amount",
+        "treasury.positions.notional_amount", "treasury.positions.market_value",
+        "payments.payment_instructions.amount", "payments.payment_receipts.amount"
+      ]
+    },
+    "Regulatory": {
+      "description": "Data feeding regulatory reports — subject to audit and data quality SLAs",
+      "datasets": [
+        "risk.aml_alerts", "risk.aml_cases", "risk.sanctions_screening",
+        "risk.risk_assessments", "risk.regulatory_reports",
+        "crm.complaints", "crm.marketing_consents",
+        "treasury.liquidity_pool",
+        "warehouse_reporting.rpt_liquidity_coverage",
+        "warehouse_reporting.rpt_aml_summary",
+        "warehouse_reporting.rpt_regulatory_capital"
+      ]
+    },
+    "Derived": {
+      "description": "Calculated or aggregated fields — not source of truth",
+      "datasets": [
+        "warehouse_core.dim_customer", "warehouse_core.dim_account",
+        "warehouse_core.fact_transactions", "warehouse_core.fact_gl_entries",
+        "warehouse_reporting.rpt_customer_360", "warehouse_reporting.rpt_daily_pnl",
+        "warehouse_reporting.rpt_liquidity_coverage", "warehouse_reporting.rpt_aml_summary",
+        "warehouse_reporting.rpt_product_performance"
+      ]
+    },
+    "Reference": {
+      "description": "Lookup/code tables — rarely changing reference data",
+      "datasets": [
+        "core_banking.products", "payments.payment_schemes",
+        "gl.chart_of_accounts", "gl.cost_centres",
+        "treasury.fx_rates"
+      ]
+    }
+  },
+  "glossary_terms": [
+    {"term": "Sort Code", "definition": "6-digit code identifying a UK bank branch for routing payments. Format: XX-XX-XX.", "related_columns": ["core_banking.accounts.sort_code", "warehouse_core.dim_account.sort_code"]},
+    {"term": "KYC Status", "definition": "Know Your Customer verification status. Required under Money Laundering Regulations 2017.", "related_columns": ["core_banking.customers.kyc_status", "warehouse_core.dim_customer.kyc_status"]},
+    {"term": "AML Alert", "definition": "Automated alert from transaction monitoring system indicating potentially suspicious activity requiring review.", "related_datasets": ["risk.aml_alerts"]},
+    {"term": "SAR", "definition": "Suspicious Activity Report — filed with the NCA (National Crime Agency) when suspicious activity is confirmed.", "related_columns": ["risk.aml_cases.sar_reference"]},
+    {"term": "LCR", "definition": "Liquidity Coverage Ratio — regulatory metric ensuring the bank holds sufficient high-quality liquid assets to survive a 30-day stress scenario. Minimum 100%.", "related_datasets": ["warehouse_reporting.rpt_liquidity_coverage"]},
+    {"term": "HQLA", "definition": "High Quality Liquid Assets — assets that can be easily and quickly converted to cash. Classified as Level 1, 2A, and 2B.", "related_columns": ["treasury.liquidity_pool.asset_class"]},
+    {"term": "CET1 Ratio", "definition": "Common Equity Tier 1 capital as a percentage of Risk Weighted Assets. Regulatory minimum 4.5%.", "related_columns": ["warehouse_reporting.rpt_regulatory_capital.cet1_ratio"]},
+    {"term": "SCD Type 2", "definition": "Slowly Changing Dimension Type 2 — maintains full history by creating new rows when attributes change.", "related_datasets": ["warehouse_core.dim_customer", "warehouse_core.dim_account"]},
+    {"term": "PEP", "definition": "Politically Exposed Person — individual who holds or has held a prominent public function. Requires Enhanced Due Diligence.", "related_columns": ["risk.risk_assessments.pep_status"]},
+    {"term": "FOS", "definition": "Financial Ombudsman Service — UK body that resolves disputes between consumers and financial firms.", "related_columns": ["crm.complaints.fos_referral"]},
+    {"term": "GDPR Consent", "definition": "Explicit consent under the General Data Protection Regulation for processing personal data for specific purposes.", "related_datasets": ["crm.marketing_consents"]},
+    {"term": "NI Number", "definition": "National Insurance Number — unique UK government identifier. Classified as PII.", "related_columns": ["core_banking.customers.ni_number"]},
+    {"term": "COREP", "definition": "Common Reporting — EU/UK prudential reporting framework for own funds, capital ratios, and large exposures.", "related_datasets": ["risk.regulatory_reports", "warehouse_reporting.rpt_regulatory_capital"]},
+    {"term": "FINREP", "definition": "Financial Reporting — EU/UK framework for supervisory financial reporting.", "related_datasets": ["risk.regulatory_reports"]},
+    {"term": "Risk Weighted Assets", "definition": "Bank assets weighted by credit risk. Used to calculate capital adequacy ratios.", "related_columns": ["warehouse_reporting.rpt_regulatory_capital.total_rwa"]}
+  ]
+}

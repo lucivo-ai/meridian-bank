@@ -1,0 +1,181 @@
+{
+  "lineage_edges": [
+    {
+      "id": "L001",
+      "name": "Transactions → Staging → Facts → P&L",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.transactions,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_transactions,PROD)",
+          "transformation": "full_extract",
+          "schedule": "daily 02:00 UTC",
+          "description": "Full extract of transactions from core banking into staging"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_transactions,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_transactions,PROD)",
+          "transformation": "join_enrich_dedup",
+          "schedule": "daily 03:00 UTC",
+          "description": "Join with dim_customer and dim_account, deduplicate on txn_id, add surrogate keys"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_transactions,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_daily_pnl,PROD)",
+          "transformation": "aggregate",
+          "schedule": "daily 04:00 UTC",
+          "description": "Aggregate transactions into daily P&L categories"
+        }
+      ]
+    },
+    {
+      "id": "L002",
+      "name": "Customer 360 Assembly",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.customers,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_customers,PROD)",
+          "transformation": "full_extract",
+          "schedule": "daily 02:00 UTC"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.crm.contacts,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_contacts,PROD)",
+          "transformation": "full_extract",
+          "schedule": "daily 02:00 UTC"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.risk_assessments,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_risk_assessments,PROD)",
+          "transformation": "full_extract",
+          "schedule": "daily 02:00 UTC"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_customers,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.dim_customer,PROD)",
+          "transformation": "scd_type2_merge",
+          "schedule": "daily 03:00 UTC",
+          "description": "Merge customer data from core banking, CRM contacts, credit scores, and risk assessments into SCD2 dimension"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_contacts,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.dim_customer,PROD)",
+          "transformation": "scd_type2_merge"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_risk_assessments,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.dim_customer,PROD)",
+          "transformation": "scd_type2_merge"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.dim_customer,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_customer_360,PROD)",
+          "transformation": "aggregate_enrich",
+          "schedule": "daily 04:00 UTC",
+          "description": "Aggregate balances, transactions, risk data, and CRM interactions into customer 360 view"
+        }
+      ]
+    },
+    {
+      "id": "L003",
+      "name": "Liquidity Coverage Pipeline",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.accounts,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.dim_account,PROD)",
+          "transformation": "scd_type2_merge"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.account_balances,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_daily_balances,PROD)",
+          "transformation": "join_with_dimensions"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.treasury.liquidity_pool,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_liquidity_coverage,PROD)",
+          "transformation": "lcr_calculation",
+          "description": "Calculate LCR from HQLA pool, deposit outflows, and wholesale funding. Regulatory minimum 100%"
+        }
+      ]
+    },
+    {
+      "id": "L004",
+      "name": "AML Summary Pipeline",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.aml_alerts,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_aml_summary,PROD)",
+          "transformation": "monthly_aggregate"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.aml_cases,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_aml_summary,PROD)",
+          "transformation": "monthly_aggregate"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.transactions,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_aml_summary,PROD)",
+          "transformation": "suspicious_txn_aggregate",
+          "description": "Aggregate suspicious transaction amounts linked to AML alerts"
+        }
+      ]
+    },
+    {
+      "id": "L005",
+      "name": "GL → P&L Pipeline",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.gl.gl_entries,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_gl_entries,PROD)",
+          "transformation": "incremental_extract"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.gl.chart_of_accounts,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_gl_entries,PROD)",
+          "transformation": "lookup_join"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_staging.stg_gl_entries,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_gl_entries,PROD)",
+          "transformation": "enrich_with_net_amount"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_core.fact_gl_entries,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.warehouse_reporting.rpt_daily_pnl,PROD)",
+          "transformation": "daily_aggregate_by_category"
+        }
+      ]
+    },
+    {
+      "id": "L006",
+      "name": "Regulatory Risk Pipeline",
+      "edges": [
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.core_banking.customers,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.risk_assessments,PROD)",
+          "transformation": "customer_risk_scoring"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.sanctions_screening,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.risk_assessments,PROD)",
+          "transformation": "sanctions_input"
+        },
+        {
+          "upstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.risk_assessments,PROD)",
+          "downstream": "urn:li:dataset:(urn:li:dataPlatform:postgres,meridian_bank.risk.regulatory_reports,PROD)",
+          "transformation": "regulatory_extract",
+          "description": "Risk assessment data feeds COREP regulatory reports"
+        }
+      ]
+    }
+  ],
+  "undocumented_lineage_gaps": [
+    {
+      "dataset": "warehouse_reporting.rpt_product_performance",
+      "note": "LINEAGE GAP: Source data flow from core_banking.accounts → this report is not documented in lineage metadata. Agent should be able to discover this gap."
+    },
+    {
+      "dataset": "warehouse_reporting.rpt_arrears_ageing",
+      "note": "LINEAGE GAP: No upstream lineage documented. Actual sources are core_banking.accounts and core_banking.transactions filtered for arrears."
+    }
+  ]
+}

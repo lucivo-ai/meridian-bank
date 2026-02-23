@@ -1,0 +1,45 @@
+@prefix fibo-fnd: <https://spec.edmcouncil.org/fibo/ontology/FND/> .
+@prefix fibo-fbc: <https://spec.edmcouncil.org/fibo/ontology/FBC/> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+
+# ═══════════════════════════════════════════════════════════════
+# FIBO Subset — Relevant concepts for Meridian Banking Ontology
+# Lightweight alignment, not full FIBO import
+# ═══════════════════════════════════════════════════════════════
+
+<https://spec.edmcouncil.org/fibo/ontology/subset/meridian>
+    a owl:Ontology ;
+    dcterms:title "FIBO Subset for Meridian Bank"@en ;
+    dcterms:description "Minimal FIBO concept definitions used for alignment with the Meridian ontology."@en .
+
+fibo-fnd:Person
+    a owl:Class ;
+    rdfs:label "Person"@en ;
+    rdfs:comment "A natural person — FIBO Foundation concept."@en .
+
+fibo-fnd:LegalEntity
+    a owl:Class ;
+    rdfs:label "Legal Entity"@en ;
+    rdfs:comment "An entity with legal standing — FIBO Foundation concept."@en .
+
+fibo-fbc:Account
+    a owl:Class ;
+    rdfs:label "Account"@en ;
+    rdfs:comment "A financial account — FIBO Financial Business and Commerce concept."@en .
+
+fibo-fbc:Transaction
+    a owl:Class ;
+    rdfs:label "Transaction"@en ;
+    rdfs:comment "A financial transaction — FIBO Financial Business and Commerce concept."@en .
+
+fibo-fbc:FinancialProduct
+    a owl:Class ;
+    rdfs:label "Financial Product"@en ;
+    rdfs:comment "A product offered by a financial institution — FIBO concept."@en .
+
+fibo-fbc:RegulatoryReport
+    a owl:Class ;
+    rdfs:label "Regulatory Report"@en ;
+    rdfs:comment "A report required by a regulatory authority — FIBO concept."@en .

@@ -1,0 +1,419 @@
+@prefix meridian: <http://lucivo.ai/ontology/meridian#> .
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:      <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:     <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix fibo-fnd: <https://spec.edmcouncil.org/fibo/ontology/FND/> .
+@prefix fibo-fbc: <https://spec.edmcouncil.org/fibo/ontology/FBC/> .
+
+# ═══════════════════════════════════════════════════════════════
+# Meridian Community Bank — Core Banking Ontology
+# Version: 1.0.0
+# Created for Lucivo DMP demonstration
+# ═══════════════════════════════════════════════════════════════
+
+<http://lucivo.ai/ontology/meridian>
+    a owl:Ontology ;
+    dcterms:title "Meridian Community Bank Ontology"@en ;
+    dcterms:description "Business concept model for Meridian Community Bank, mapping banking domain concepts to physical data assets."@en ;
+    dcterms:creator "Lucivo.ai" ;
+    dcterms:created "2025-01-01"^^xsd:date ;
+    owl:versionInfo "1.0.0" .
+
+# ───────────────────────────────────────────────────────────────
+# Top-Level Classes
+# ───────────────────────────────────────────────────────────────
+
+meridian:Entity
+    a owl:Class ;
+    rdfs:label "Entity"@en ;
+    rdfs:comment "Abstract root class for all Meridian banking concepts."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Party Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:Party
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Party"@en ;
+    rdfs:comment "Any individual or organisation that has a relationship with the bank."@en ;
+    skos:definition "A person or legal entity that is a customer, counterparty, or other stakeholder of Meridian Community Bank."@en .
+
+meridian:Individual
+    a owl:Class ;
+    rdfs:subClassOf meridian:Party, fibo-fnd:Person ;
+    rdfs:label "Individual"@en ;
+    rdfs:comment "A personal (retail) banking customer."@en ;
+    skos:definition "A natural person holding one or more personal banking products."@en .
+
+meridian:Organisation
+    a owl:Class ;
+    rdfs:subClassOf meridian:Party ;
+    rdfs:label "Organisation"@en ;
+    rdfs:comment "A business entity — either SME or Corporate."@en .
+
+meridian:SME
+    a owl:Class ;
+    rdfs:subClassOf meridian:Organisation ;
+    rdfs:label "SME"@en ;
+    rdfs:comment "Small or Medium Enterprise customer."@en ;
+    skos:definition "Business customer with turnover under £25m."@en .
+
+meridian:Corporate
+    a owl:Class ;
+    rdfs:subClassOf meridian:Organisation ;
+    rdfs:label "Corporate"@en ;
+    rdfs:comment "Large corporate customer."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Account Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:Account
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity, fibo-fbc:Account ;
+    rdfs:label "Account"@en ;
+    rdfs:comment "A banking account held by a Party."@en ;
+    skos:definition "A financial account that records transactions and maintains a balance for a customer."@en .
+
+meridian:CurrentAccount
+    a owl:Class ;
+    rdfs:subClassOf meridian:Account ;
+    rdfs:label "Current Account"@en ;
+    rdfs:comment "Day-to-day transactional account with sort code and account number."@en .
+
+meridian:SavingsAccount
+    a owl:Class ;
+    rdfs:subClassOf meridian:Account ;
+    rdfs:label "Savings Account"@en ;
+    rdfs:comment "Interest-bearing deposit account for savings."@en .
+
+meridian:LoanAccount
+    a owl:Class ;
+    rdfs:subClassOf meridian:Account ;
+    rdfs:label "Loan Account"@en ;
+    rdfs:comment "Personal or business loan facility."@en .
+
+meridian:MortgageAccount
+    a owl:Class ;
+    rdfs:subClassOf meridian:Account ;
+    rdfs:label "Mortgage Account"@en ;
+    rdfs:comment "Secured lending facility against property."@en .
+
+meridian:CardAccount
+    a owl:Class ;
+    rdfs:subClassOf meridian:Account ;
+    rdfs:label "Card Account"@en ;
+    rdfs:comment "Credit or debit card account."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Product Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:Product
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Product"@en ;
+    rdfs:comment "A banking product offered by Meridian."@en .
+
+meridian:DepositProduct
+    a owl:Class ;
+    rdfs:subClassOf meridian:Product ;
+    rdfs:label "Deposit Product"@en ;
+    rdfs:comment "Products where the customer deposits money — current accounts, savings."@en .
+
+meridian:LendingProduct
+    a owl:Class ;
+    rdfs:subClassOf meridian:Product ;
+    rdfs:label "Lending Product"@en ;
+    rdfs:comment "Products where the bank lends to the customer — loans, mortgages, credit cards."@en .
+
+meridian:PaymentProduct
+    a owl:Class ;
+    rdfs:subClassOf meridian:Product ;
+    rdfs:label "Payment Product"@en ;
+    rdfs:comment "Payment services — standing orders, direct debits, faster payments."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Transaction Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:Transaction
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity, fibo-fbc:Transaction ;
+    rdfs:label "Transaction"@en ;
+    rdfs:comment "A financial transaction on an account."@en ;
+    skos:definition "A monetary event that changes the balance of an account."@en .
+
+meridian:Debit
+    a owl:Class ;
+    rdfs:subClassOf meridian:Transaction ;
+    rdfs:label "Debit"@en ;
+    rdfs:comment "A transaction that reduces the account balance."@en .
+
+meridian:Credit
+    a owl:Class ;
+    rdfs:subClassOf meridian:Transaction ;
+    rdfs:label "Credit"@en ;
+    rdfs:comment "A transaction that increases the account balance."@en .
+
+meridian:Transfer
+    a owl:Class ;
+    rdfs:subClassOf meridian:Transaction ;
+    rdfs:label "Transfer"@en ;
+    rdfs:comment "An internal transfer between accounts."@en .
+
+meridian:Payment
+    a owl:Class ;
+    rdfs:subClassOf meridian:Transaction ;
+    rdfs:label "Payment"@en ;
+    rdfs:comment "An external payment instruction via a payment scheme."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Risk Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:RiskAssessment
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Risk Assessment"@en ;
+    rdfs:comment "An assessment of risk associated with a party or activity."@en .
+
+meridian:CreditRisk
+    a owl:Class ;
+    rdfs:subClassOf meridian:RiskAssessment ;
+    rdfs:label "Credit Risk"@en ;
+    rdfs:comment "Assessment of a party's creditworthiness and probability of default."@en ;
+    skos:definition "The risk that a borrower will fail to meet their debt obligations."@en .
+
+meridian:AMLRisk
+    a owl:Class ;
+    rdfs:subClassOf meridian:RiskAssessment ;
+    rdfs:label "AML Risk"@en ;
+    rdfs:comment "Anti-Money Laundering risk assessment."@en ;
+    skos:definition "The risk that a customer or transaction is associated with money laundering or terrorist financing."@en .
+
+meridian:OperationalRisk
+    a owl:Class ;
+    rdfs:subClassOf meridian:RiskAssessment ;
+    rdfs:label "Operational Risk"@en ;
+    rdfs:comment "Risk of loss from inadequate processes, people, systems, or external events."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Regulatory Hierarchy
+# ───────────────────────────────────────────────────────────────
+
+meridian:RegulatoryReport
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Regulatory Report"@en ;
+    rdfs:comment "A report submitted to a regulatory body."@en .
+
+meridian:COREP
+    a owl:Class ;
+    rdfs:subClassOf meridian:RegulatoryReport ;
+    rdfs:label "COREP"@en ;
+    rdfs:comment "Common Reporting — capital adequacy and large exposures."@en .
+
+meridian:FINREP
+    a owl:Class ;
+    rdfs:subClassOf meridian:RegulatoryReport ;
+    rdfs:label "FINREP"@en ;
+    rdfs:comment "Financial Reporting — supervisory financial statements."@en .
+
+meridian:LiquidityCoverageReport
+    a owl:Class ;
+    rdfs:subClassOf meridian:RegulatoryReport ;
+    rdfs:label "Liquidity Coverage Report"@en ;
+    rdfs:comment "LCR/NSFR liquidity regulatory reporting."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Additional Domain Classes
+# ───────────────────────────────────────────────────────────────
+
+meridian:Address
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Address"@en ;
+    rdfs:comment "A postal address associated with a party."@en .
+
+meridian:Branch
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Branch"@en ;
+    rdfs:comment "A physical or digital branch of the bank."@en .
+
+meridian:Interaction
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "Interaction"@en ;
+    rdfs:comment "A touchpoint between the bank and a customer — call, email, branch visit."@en .
+
+meridian:Complaint
+    a owl:Class ;
+    rdfs:subClassOf meridian:Interaction ;
+    rdfs:label "Complaint"@en ;
+    rdfs:comment "A formal customer complaint, subject to FCA regulation."@en .
+
+meridian:GDPRConsent
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "GDPR Consent"@en ;
+    rdfs:comment "Record of customer consent for data processing under GDPR."@en .
+
+meridian:GLEntry
+    a owl:Class ;
+    rdfs:subClassOf meridian:Entity ;
+    rdfs:label "General Ledger Entry"@en ;
+    rdfs:comment "A journal entry in the General Ledger."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Object Properties (Relationships)
+# ───────────────────────────────────────────────────────────────
+
+meridian:hasAccount
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:Account ;
+    rdfs:label "has account"@en ;
+    rdfs:comment "Links a party to their banking accounts."@en .
+
+meridian:hasProduct
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range meridian:Product ;
+    rdfs:label "has product"@en ;
+    rdfs:comment "Links an account to the product type it is based on."@en .
+
+meridian:hasTransaction
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range meridian:Transaction ;
+    rdfs:label "has transaction"@en ;
+    rdfs:comment "Links an account to its transactions."@en .
+
+meridian:hasRiskAssessment
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:RiskAssessment ;
+    rdfs:label "has risk assessment"@en ;
+    rdfs:comment "Links a party to their risk assessments."@en .
+
+meridian:hasCreditScore
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf meridian:hasRiskAssessment ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:CreditRisk ;
+    rdfs:label "has credit score"@en .
+
+meridian:hasAMLAlert
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:AMLRisk ;
+    rdfs:label "has AML alert"@en .
+
+meridian:hasAddress
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:Address ;
+    rdfs:label "has address"@en .
+
+meridian:feedsReport
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Entity ;
+    rdfs:range meridian:RegulatoryReport ;
+    rdfs:label "feeds report"@en ;
+    rdfs:comment "Indicates that data from this entity feeds into a regulatory report."@en .
+
+meridian:hasInteraction
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:Interaction ;
+    rdfs:label "has interaction"@en .
+
+meridian:hasConsent
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:GDPRConsent ;
+    rdfs:label "has consent"@en .
+
+meridian:hasGLEntry
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range meridian:GLEntry ;
+    rdfs:label "has GL entry"@en .
+
+meridian:managedBy
+    a owl:ObjectProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range meridian:Branch ;
+    rdfs:label "managed by"@en ;
+    rdfs:comment "The branch or relationship manager responsible for this customer."@en .
+
+# ───────────────────────────────────────────────────────────────
+# Data Properties
+# ───────────────────────────────────────────────────────────────
+
+meridian:partyName
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range xsd:string ;
+    rdfs:label "party name"@en .
+
+meridian:dateOfBirth
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Individual ;
+    rdfs:range xsd:date ;
+    rdfs:label "date of birth"@en .
+
+meridian:niNumber
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Individual ;
+    rdfs:range xsd:string ;
+    rdfs:label "NI number"@en ;
+    rdfs:comment "National Insurance number — PII."@en .
+
+meridian:accountNumber
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range xsd:string ;
+    rdfs:label "account number"@en .
+
+meridian:sortCode
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range xsd:string ;
+    rdfs:label "sort code"@en .
+
+meridian:balance
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Account ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "balance"@en .
+
+meridian:transactionAmount
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Transaction ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "transaction amount"@en .
+
+meridian:riskRating
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range xsd:string ;
+    rdfs:label "risk rating"@en .
+
+meridian:kycStatus
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:Party ;
+    rdfs:range xsd:string ;
+    rdfs:label "KYC status"@en .
+
+meridian:creditScore
+    a owl:DatatypeProperty ;
+    rdfs:domain meridian:CreditRisk ;
+    rdfs:range xsd:integer ;
+    rdfs:label "credit score"@en .

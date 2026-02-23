@@ -1,0 +1,70 @@
+# DataHub Ingestion Recipe for Meridian Community Bank
+# Run with: datahub ingest -c datahub_ingestion_recipe.yaml
+
+source:
+  type: postgres
+  config:
+    host_port: "localhost:5433"
+    database: meridian_bank
+    username: meridian
+    password: meridian_dev
+    include_tables: true
+    include_views: true
+    schema_pattern:
+      allow:
+        - "core_banking"
+        - "crm"
+        - "risk"
+        - "payments"
+        - "treasury"
+        - "gl"
+        - "warehouse_staging"
+        - "warehouse_core"
+        - "warehouse_reporting"
+    profiling:
+      enabled: false
+      # Re-enable for column-level profiling (slow on large datasets):
+      # enabled: true
+      # profile_table_level_only: false
+
+transformers:
+  - type: "pattern_add_dataset_tags"
+    config:
+      tag_pattern:
+        rules:
+          ".*core_banking\\.customers.*": ["urn:li:tag:PII", "urn:li:tag:Customer"]
+          ".*core_banking\\.addresses.*": ["urn:li:tag:PII", "urn:li:tag:Customer"]
+          ".*core_banking\\.accounts.*": ["urn:li:tag:Sensitive", "urn:li:tag:Financial"]
+          ".*core_banking\\.transactions.*": ["urn:li:tag:Sensitive", "urn:li:tag:Financial"]
+          ".*crm\\.contacts.*": ["urn:li:tag:PII", "urn:li:tag:Customer"]
+          ".*crm\\.marketing_consents.*": ["urn:li:tag:PII", "urn:li:tag:Regulatory"]
+          ".*crm\\.complaints.*": ["urn:li:tag:Regulatory"]
+          ".*risk\\..*": ["urn:li:tag:Sensitive", "urn:li:tag:Regulatory"]
+          ".*gl\\..*": ["urn:li:tag:Financial"]
+          ".*treasury\\..*": ["urn:li:tag:Financial"]
+          ".*warehouse_.*": ["urn:li:tag:Derived"]
+
+  - type: "pattern_add_dataset_ownership"
+    config:
+      owner_pattern:
+        rules:
+          ".*core_banking.*": ["james.chen@meridianbank.co.uk"]
+          ".*crm.*": ["james.chen@meridianbank.co.uk"]
+          ".*risk.*": ["priya.sharma@meridianbank.co.uk"]
+          ".*payments.*": ["emma.williams@meridianbank.co.uk"]
+          ".*gl.*|.*treasury.*": ["david.okonkwo@meridianbank.co.uk"]
+          ".*warehouse.*": ["tom.andersen@meridianbank.co.uk"]
+
+sink:
+  type: datahub-rest
+  config:
+    server: "http://localhost:8080"
+
+# For file-based ingestion (without running DataHub):
+# Use the JSON files in metadata/datahub/ directory:
+# - datasets.json: Dataset definitions
+# - schemas.json: Column-level metadata
+# - ownership.json: Data owners
+# - lineage.json: Data lineage edges
+# - tags_and_glossary.json: Tags and business glossary
+# - data_quality.json: DQ assertions and results

@@ -1,0 +1,73 @@
+{
+  "owners": [
+    {
+      "name": "Sarah Mitchell",
+      "role": "Chief Data Officer",
+      "email": "sarah.mitchell@meridianbank.co.uk",
+      "datasets": ["*"],
+      "ownership_type": "STEWARD"
+    },
+    {
+      "name": "James Chen",
+      "role": "Head of Retail Data",
+      "email": "james.chen@meridianbank.co.uk",
+      "datasets": [
+        "core_banking.customers", "core_banking.addresses", "core_banking.accounts",
+        "core_banking.transactions", "core_banking.account_balances",
+        "core_banking.products", "core_banking.standing_orders", "core_banking.direct_debits",
+        "crm.contacts", "crm.interactions", "crm.complaints",
+        "crm.marketing_consents", "crm.segments"
+      ],
+      "ownership_type": "DATA_OWNER"
+    },
+    {
+      "name": "Priya Sharma",
+      "role": "Head of Risk Data",
+      "email": "priya.sharma@meridianbank.co.uk",
+      "datasets": [
+        "risk.credit_scores", "risk.credit_applications",
+        "risk.aml_alerts", "risk.aml_cases",
+        "risk.sanctions_screening", "risk.risk_assessments",
+        "risk.regulatory_reports"
+      ],
+      "ownership_type": "DATA_OWNER"
+    },
+    {
+      "name": "David Okonkwo",
+      "role": "Head of Finance Data",
+      "email": "david.okonkwo@meridianbank.co.uk",
+      "datasets": [
+        "gl.chart_of_accounts", "gl.gl_entries", "gl.gl_balances", "gl.cost_centres",
+        "treasury.positions", "treasury.fx_rates",
+        "treasury.interbank_lending", "treasury.liquidity_pool"
+      ],
+      "ownership_type": "DATA_OWNER"
+    },
+    {
+      "name": "Emma Williams",
+      "role": "Payments Data Lead",
+      "email": "emma.williams@meridianbank.co.uk",
+      "datasets": [
+        "payments.payment_schemes", "payments.payment_instructions",
+        "payments.payment_receipts", "payments.failed_payments"
+      ],
+      "ownership_type": "DATA_OWNER"
+    },
+    {
+      "name": "Tom Andersen",
+      "role": "DWH Lead",
+      "email": "tom.andersen@meridianbank.co.uk",
+      "datasets": [
+        "warehouse_staging.*", "warehouse_core.*", "warehouse_reporting.*"
+      ],
+      "ownership_type": "DATA_OWNER"
+    },
+    {
+      "name": "Fatima Al-Rashid",
+      "role": "Data Quality Lead",
+      "email": "fatima.alrashid@meridianbank.co.uk",
+      "datasets": ["*"],
+      "ownership_type": "DATA_QUALITY_OWNER"
+    }
+  ]
+}

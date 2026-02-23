@@ -1,0 +1,187 @@
+{
+  "assertions": [
+    {
+      "id": "DQ-001",
+      "name": "Transactions: no null account_id",
+      "dataset": "core_banking.transactions",
+      "type": "NOT_NULL",
+      "column": "account_id",
+      "sql": "SELECT COUNT(*) FROM core_banking.transactions WHERE account_id IS NULL",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T03:30:00Z"
+    },
+    {
+      "id": "DQ-002",
+      "name": "Accounts: valid sort code format",
+      "dataset": "core_banking.accounts",
+      "type": "REGEX",
+      "column": "sort_code",
+      "sql": "SELECT COUNT(*) FROM core_banking.accounts WHERE sort_code !~ '^\\d{6}$'",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T03:30:00Z"
+    },
+    {
+      "id": "DQ-003",
+      "name": "Customers: postcode completeness",
+      "dataset": "core_banking.addresses",
+      "type": "COMPLETENESS",
+      "column": "postcode",
+      "sql": "SELECT COUNT(*) FROM core_banking.addresses WHERE postcode IS NULL",
+      "expected": 0,
+      "actual": 500,
+      "status": "FAIL",
+      "severity": "WARNING",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "500 addresses have NULL postcode (0.77% of records). Investigate data quality in onboarding process."
+    },
+    {
+      "id": "DQ-004",
+      "name": "Transactions: no zero-amount transactions",
+      "dataset": "core_banking.transactions",
+      "type": "CUSTOM",
+      "sql": "SELECT COUNT(*) FROM core_banking.transactions WHERE amount = 0",
+      "expected": 0,
+      "actual": 100,
+      "status": "FAIL",
+      "severity": "WARNING",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "100 transactions with zero amount detected. May indicate data entry errors or system bugs."
+    },
+    {
+      "id": "DQ-005",
+      "name": "GL: journal balance check",
+      "dataset": "gl.gl_entries",
+      "type": "CUSTOM",
+      "sql": "SELECT batch_id, SUM(debit_amount) - SUM(credit_amount) as imbalance FROM gl.gl_entries GROUP BY batch_id HAVING ABS(SUM(debit_amount) - SUM(credit_amount)) > 0.01",
+      "expected": 0,
+      "actual": 1,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "GL imbalance detected in batch BATCH-2024-ERR-001: debits ≠ credits by £500.00. Requires immediate investigation."
+    },
+    {
+      "id": "DQ-006",
+      "name": "Staging: customers freshness",
+      "dataset": "warehouse_staging.stg_customers",
+      "type": "FRESHNESS",
+      "sql": "SELECT MAX(_ingested_at) FROM warehouse_staging.stg_customers",
+      "threshold_hours": 24,
+      "status": "PASS",
+      "last_run": "2025-01-01T03:30:00Z"
+    },
+    {
+      "id": "DQ-007",
+      "name": "Staging: credit scores freshness",
+      "dataset": "warehouse_staging.stg_credit_scores",
+      "type": "FRESHNESS",
+      "sql": "SELECT MAX(_ingested_at) FROM warehouse_staging.stg_credit_scores",
+      "threshold_hours": 24,
+      "actual_hours": 288,
+      "status": "FAIL",
+      "severity": "HIGH",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "stg_credit_scores last ingested 12 days ago (2024-12-20). Expected < 24 hours. Pipeline may be broken."
+    },
+    {
+      "id": "DQ-008",
+      "name": "Staging: risk assessments freshness",
+      "dataset": "warehouse_staging.stg_risk_assessments",
+      "type": "FRESHNESS",
+      "sql": "SELECT MAX(_ingested_at) FROM warehouse_staging.stg_risk_assessments",
+      "threshold_hours": 24,
+      "actual_hours": 288,
+      "status": "FAIL",
+      "severity": "HIGH",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "stg_risk_assessments last ingested 12 days ago. Risk data is stale."
+    },
+    {
+      "id": "DQ-009",
+      "name": "Staging: AML alerts freshness",
+      "dataset": "warehouse_staging.stg_aml_alerts",
+      "type": "FRESHNESS",
+      "sql": "SELECT MAX(_ingested_at) FROM warehouse_staging.stg_aml_alerts",
+      "threshold_hours": 24,
+      "actual_hours": 288,
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "stg_aml_alerts last ingested 12 days ago. CRITICAL: AML data must be current for regulatory compliance."
+    },
+    {
+      "id": "DQ-010",
+      "name": "Accounts: referential integrity to customers",
+      "dataset": "core_banking.accounts",
+      "type": "FK_CHECK",
+      "sql": "SELECT COUNT(*) FROM core_banking.accounts a LEFT JOIN core_banking.customers c ON a.customer_id = c.customer_id WHERE c.customer_id IS NULL",
+      "expected": 0,
+      "actual": 15,
+      "status": "FAIL",
+      "severity": "HIGH",
+      "last_run": "2025-01-01T03:30:00Z",
+      "failure_message": "15 orphaned accounts found with no matching customer record. FK integrity violated."
+    },
+    {
+      "id": "DQ-011",
+      "name": "Customer 360: completeness of key fields",
+      "dataset": "warehouse_reporting.rpt_customer_360",
+      "type": "COMPLETENESS",
+      "sql": "SELECT COUNT(*) FROM warehouse_reporting.rpt_customer_360 WHERE customer_ref IS NULL OR full_name IS NULL OR customer_type IS NULL",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T04:30:00Z"
+    },
+    {
+      "id": "DQ-012",
+      "name": "AML: all active customers screened",
+      "dataset": "risk.sanctions_screening",
+      "type": "COVERAGE",
+      "sql": "SELECT COUNT(*) FROM core_banking.customers c LEFT JOIN risk.sanctions_screening s ON c.customer_id = s.customer_id WHERE c.is_active = TRUE AND s.screening_id IS NULL",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T03:30:00Z"
+    },
+    {
+      "id": "DQ-013",
+      "name": "Customers: email completeness",
+      "dataset": "core_banking.customers",
+      "type": "COMPLETENESS",
+      "column": "email",
+      "sql": "SELECT ROUND(COUNT(*) FILTER (WHERE email IS NULL)::numeric / COUNT(*) * 100, 2) FROM core_banking.customers",
+      "threshold_pct": 5.0,
+      "status": "PASS",
+      "last_run": "2025-01-01T03:30:00Z"
+    },
+    {
+      "id": "DQ-014",
+      "name": "Fact transactions: all dimension keys valid",
+      "dataset": "warehouse_core.fact_transactions",
+      "type": "FK_CHECK",
+      "sql": "SELECT COUNT(*) FROM warehouse_core.fact_transactions ft LEFT JOIN warehouse_core.dim_date dd ON ft.date_key = dd.date_key WHERE dd.date_key IS NULL",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T04:30:00Z"
+    },
+    {
+      "id": "DQ-015",
+      "name": "LCR: ratio above regulatory minimum",
+      "dataset": "warehouse_reporting.rpt_liquidity_coverage",
+      "type": "CUSTOM",
+      "sql": "SELECT COUNT(*) FROM warehouse_reporting.rpt_liquidity_coverage WHERE lcr_ratio < 100",
+      "expected": 0,
+      "status": "PASS",
+      "last_run": "2025-01-01T04:30:00Z"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passing": 8,
+    "failing": 7,
+    "critical_failures": 2,
+    "high_failures": 3,
+    "warning_failures": 2
+  }
+}

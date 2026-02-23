@@ -1,0 +1,75 @@
+@prefix dcat:    <http://www.w3.org/ns/dcat#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix vcard:   <http://www.w3.org/2006/vcard/ns#> .
+
+# ═══════════════════════════════════════════════════════════════
+# DCAT Profile — Meridian Community Bank Data Catalogue
+# Describes the bank's data assets using W3C DCAT vocabulary
+# ═══════════════════════════════════════════════════════════════
+
+<http://lucivo.ai/catalog/meridian>
+    a dcat:Catalog ;
+    dcterms:title "Meridian Community Bank Data Catalogue"@en ;
+    dcterms:description "Catalogue of all data assets for Meridian Community Bank, a UK-based retail bank."@en ;
+    dcterms:publisher <http://lucivo.ai/org/meridian-bank> ;
+    dcterms:issued "2025-01-01"^^xsd:date ;
+    dcat:dataset
+        <http://lucivo.ai/dataset/core-banking>,
+        <http://lucivo.ai/dataset/crm>,
+        <http://lucivo.ai/dataset/risk>,
+        <http://lucivo.ai/dataset/payments>,
+        <http://lucivo.ai/dataset/treasury>,
+        <http://lucivo.ai/dataset/general-ledger>,
+        <http://lucivo.ai/dataset/data-warehouse> .
+
+<http://lucivo.ai/dataset/core-banking>
+    a dcat:Dataset ;
+    dcterms:title "Core Banking System"@en ;
+    dcterms:description "Customer master, accounts, transactions, balances, standing orders, and direct debits."@en ;
+    dcat:keyword "customers", "accounts", "transactions", "balances" ;
+    dcterms:accrualPeriodicity "daily" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "James Chen" ; vcard:hasEmail "james.chen@meridianbank.co.uk" ] .
+
+<http://lucivo.ai/dataset/crm>
+    a dcat:Dataset ;
+    dcterms:title "CRM System"@en ;
+    dcterms:description "Customer contacts, interactions, complaints, marketing consents, and segments."@en ;
+    dcat:keyword "contacts", "interactions", "complaints", "GDPR", "consents" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "James Chen" ] .
+
+<http://lucivo.ai/dataset/risk>
+    a dcat:Dataset ;
+    dcterms:title "Risk & Compliance Engine"@en ;
+    dcterms:description "Credit scores, AML alerts, sanctions screening, risk assessments, and regulatory reports."@en ;
+    dcat:keyword "credit risk", "AML", "sanctions", "regulatory", "compliance" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "Priya Sharma" ; vcard:hasEmail "priya.sharma@meridianbank.co.uk" ] .
+
+<http://lucivo.ai/dataset/payments>
+    a dcat:Dataset ;
+    dcterms:title "Payments System"@en ;
+    dcterms:description "Payment instructions, receipts, schemes, and failed payments."@en ;
+    dcat:keyword "FPS", "BACS", "CHAPS", "SWIFT", "payments" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "Emma Williams" ] .
+
+<http://lucivo.ai/dataset/treasury>
+    a dcat:Dataset ;
+    dcterms:title "Treasury System"@en ;
+    dcterms:description "Treasury positions, FX rates, interbank lending, and liquidity pool."@en ;
+    dcat:keyword "treasury", "FX", "liquidity", "HQLA", "interbank" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "David Okonkwo" ] .
+
+<http://lucivo.ai/dataset/general-ledger>
+    a dcat:Dataset ;
+    dcterms:title "General Ledger"@en ;
+    dcterms:description "Chart of accounts, journal entries, period balances, and cost centres."@en ;
+    dcat:keyword "GL", "journal", "P&L", "balance sheet", "cost centres" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "David Okonkwo" ] .
+
+<http://lucivo.ai/dataset/data-warehouse>
+    a dcat:Dataset ;
+    dcterms:title "Data Warehouse"@en ;
+    dcterms:description "Staging, conformed dimensions, fact tables, and reporting marts."@en ;
+    dcat:keyword "warehouse", "dimensions", "facts", "reporting", "customer 360" ;
+    dcat:contactPoint [ a vcard:Individual ; vcard:fn "Tom Andersen" ; vcard:hasEmail "tom.andersen@meridianbank.co.uk" ] .

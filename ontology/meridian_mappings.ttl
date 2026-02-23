@@ -1,0 +1,342 @@
+@prefix meridian: <http://lucivo.ai/ontology/meridian#> .
+@prefix map:      <http://lucivo.ai/ontology/mapping#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+
+# ═══════════════════════════════════════════════════════════════
+# Meridian Community Bank — Ontology-to-Physical Mappings
+# Maps business concepts to their physical table implementations
+# ═══════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────
+# Mapping Vocabulary
+# ───────────────────────────────────────────────────────────────
+
+map:PhysicalMapping
+    a rdfs:Class ;
+    rdfs:label "Physical Mapping"@en ;
+    rdfs:comment "Maps an ontology concept to a physical database table."@en .
+
+map:platform       a rdfs:Property ; rdfs:label "platform" .
+map:dataset        a rdfs:Property ; rdfs:label "dataset" .
+map:filter         a rdfs:Property ; rdfs:label "filter" .
+map:columnMapping  a rdfs:Property ; rdfs:label "column mapping" .
+map:concept        a rdfs:Property ; rdfs:label "concept" .
+map:column         a rdfs:Property ; rdfs:label "column" .
+map:isPrimary      a rdfs:Property ; rdfs:label "is primary source" .
+
+# ───────────────────────────────────────────────────────────────
+# Party → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:Individual map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.customers" ;
+    map:filter "type = 'personal'" ;
+    map:isPrimary true ;
+    map:columnMapping [
+        map:concept meridian:partyName ;
+        map:column "full_name"
+    ], [
+        map:concept meridian:dateOfBirth ;
+        map:column "date_of_birth"
+    ], [
+        map:concept meridian:niNumber ;
+        map:column "ni_number"
+    ], [
+        map:concept meridian:riskRating ;
+        map:column "risk_rating"
+    ], [
+        map:concept meridian:kycStatus ;
+        map:column "kyc_status"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.crm.contacts" ;
+    map:filter "customer_id IN (SELECT customer_id FROM core_banking.customers WHERE type = 'personal')" ;
+    map:columnMapping [
+        map:concept meridian:partyName ;
+        map:column "contact_name"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.dim_customer" ;
+    map:filter "customer_type = 'personal'" ;
+    map:columnMapping [
+        map:concept meridian:partyName ;
+        map:column "full_name"
+    ], [
+        map:concept meridian:dateOfBirth ;
+        map:column "date_of_birth"
+    ], [
+        map:concept meridian:riskRating ;
+        map:column "risk_rating"
+    ], [
+        map:concept meridian:creditScore ;
+        map:column "credit_score_value"
+    ]
+] .
+
+meridian:SME map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.customers" ;
+    map:filter "type = 'business'" ;
+    map:isPrimary true ;
+    map:columnMapping [
+        map:concept meridian:partyName ;
+        map:column "full_name"
+    ], [
+        map:concept meridian:riskRating ;
+        map:column "risk_rating"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.dim_customer" ;
+    map:filter "customer_type = 'business'" ;
+    map:columnMapping [
+        map:concept meridian:partyName ;
+        map:column "full_name"
+    ]
+] .
+
+# ───────────────────────────────────────────────────────────────
+# Account → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:CurrentAccount map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.accounts" ;
+    map:filter "product_id IN (SELECT product_id FROM core_banking.products WHERE category = 'current_account')" ;
+    map:isPrimary true ;
+    map:columnMapping [
+        map:concept meridian:accountNumber ;
+        map:column "account_number"
+    ], [
+        map:concept meridian:sortCode ;
+        map:column "sort_code"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.dim_account" ;
+    map:filter "product_category = 'current_account'" ;
+    map:columnMapping [
+        map:concept meridian:accountNumber ;
+        map:column "account_number"
+    ], [
+        map:concept meridian:sortCode ;
+        map:column "sort_code"
+    ]
+] .
+
+meridian:SavingsAccount map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.accounts" ;
+    map:filter "product_id IN (SELECT product_id FROM core_banking.products WHERE category = 'savings')" ;
+    map:isPrimary true
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.dim_account" ;
+    map:filter "product_category = 'savings'"
+] .
+
+meridian:LoanAccount map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.accounts" ;
+    map:filter "product_id IN (SELECT product_id FROM core_banking.products WHERE category = 'personal_loan' OR category = 'business_loan')" ;
+    map:isPrimary true
+] .
+
+meridian:MortgageAccount map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.accounts" ;
+    map:filter "product_id IN (SELECT product_id FROM core_banking.products WHERE category = 'mortgage')" ;
+    map:isPrimary true
+] .
+
+meridian:CardAccount map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.accounts" ;
+    map:filter "product_id IN (SELECT product_id FROM core_banking.products WHERE category = 'credit_card')" ;
+    map:isPrimary true
+] .
+
+# ───────────────────────────────────────────────────────────────
+# Transaction → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:Transaction map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.transactions" ;
+    map:isPrimary true ;
+    map:columnMapping [
+        map:concept meridian:transactionAmount ;
+        map:column "amount"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.payments.payment_instructions" ;
+    map:columnMapping [
+        map:concept meridian:transactionAmount ;
+        map:column "amount"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.payments.payment_receipts" ;
+    map:columnMapping [
+        map:concept meridian:transactionAmount ;
+        map:column "amount"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.fact_transactions" ;
+    map:columnMapping [
+        map:concept meridian:transactionAmount ;
+        map:column "amount"
+    ]
+] .
+
+meridian:Debit map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.transactions" ;
+    map:filter "amount < 0"
+] .
+
+meridian:Credit map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.transactions" ;
+    map:filter "amount > 0"
+] .
+
+# ───────────────────────────────────────────────────────────────
+# Risk → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:CreditRisk map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.credit_scores" ;
+    map:isPrimary true ;
+    map:columnMapping [
+        map:concept meridian:creditScore ;
+        map:column "score_value"
+    ]
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.credit_applications"
+] .
+
+meridian:AMLRisk map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.aml_alerts" ;
+    map:isPrimary true
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.aml_cases"
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.sanctions_screening"
+] .
+
+meridian:RiskAssessment map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.risk_assessments" ;
+    map:isPrimary true
+] .
+
+# ───────────────────────────────────────────────────────────────
+# Regulatory → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:COREP map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.regulatory_reports" ;
+    map:filter "report_type = 'COREP'" ;
+    map:isPrimary true
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_reporting.rpt_regulatory_capital"
+] .
+
+meridian:LiquidityCoverageReport map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.risk.regulatory_reports" ;
+    map:filter "report_type IN ('LCR', 'NSFR')" ;
+    map:isPrimary true
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_reporting.rpt_liquidity_coverage"
+] .
+
+# ───────────────────────────────────────────────────────────────
+# GL → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:GLEntry map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.gl.gl_entries" ;
+    map:isPrimary true
+] , [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.warehouse_core.fact_gl_entries"
+] .
+
+# ───────────────────────────────────────────────────────────────
+# Other → Physical Mappings
+# ───────────────────────────────────────────────────────────────
+
+meridian:Address map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.core_banking.addresses" ;
+    map:isPrimary true
+] .
+
+meridian:Interaction map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.crm.interactions" ;
+    map:isPrimary true
+] .
+
+meridian:Complaint map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.crm.complaints" ;
+    map:isPrimary true
+] .
+
+meridian:GDPRConsent map:physicalMapping [
+    a map:PhysicalMapping ;
+    map:platform "postgres" ;
+    map:dataset "meridian_bank.crm.marketing_consents" ;
+    map:isPrimary true
+] .

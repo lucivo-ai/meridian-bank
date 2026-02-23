@@ -1,0 +1,205 @@
+@prefix lin:      <http://lucivo.ai/ontology/lineage#> .
+@prefix meridian: <http://lucivo.ai/ontology/meridian#> .
+@prefix rdfs:     <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:      <http://www.w3.org/2001/XMLSchema#> .
+
+# ═══════════════════════════════════════════════════════════════
+# Meridian Community Bank — Data Lineage Graph (RDF)
+# ═══════════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────────
+# Lineage Vocabulary
+# ───────────────────────────────────────────────────────────────
+
+lin:DataFlow          a rdfs:Class ; rdfs:label "Data Flow" .
+lin:transformedTo     a rdfs:Property ; rdfs:label "transformed to" .
+lin:transformationType a rdfs:Property ; rdfs:label "transformation type" .
+lin:schedule          a rdfs:Property ; rdfs:label "schedule" .
+lin:businessRule      a rdfs:Property ; rdfs:label "business rule" .
+lin:owner             a rdfs:Property ; rdfs:label "pipeline owner" .
+lin:sla               a rdfs:Property ; rdfs:label "SLA" .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 1: Transactions → Staging → Facts → P&L
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:core_banking.transactions>
+    rdfs:label "core_banking.transactions" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_transactions> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" ;
+    lin:owner "Tom Andersen" .
+
+<urn:dataset:warehouse_staging.stg_transactions>
+    rdfs:label "warehouse_staging.stg_transactions" ;
+    lin:transformedTo <urn:dataset:warehouse_core.fact_transactions> ;
+    lin:transformationType "join_enrich_dedup" ;
+    lin:schedule "daily 03:00 UTC" ;
+    lin:businessRule "Join with dim_customer, dim_account, dim_product. Deduplicate on txn_id. Add surrogate keys." .
+
+<urn:dataset:warehouse_core.fact_transactions>
+    rdfs:label "warehouse_core.fact_transactions" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_daily_pnl> ;
+    lin:transformationType "aggregate" ;
+    lin:schedule "daily 04:00 UTC" ;
+    lin:businessRule "Aggregate by date, GL category, and cost centre." .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 2: Customer 360 Assembly
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:core_banking.customers>
+    rdfs:label "core_banking.customers" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_customers> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" .
+
+<urn:dataset:crm.contacts>
+    rdfs:label "crm.contacts" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_contacts> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" .
+
+<urn:dataset:risk.risk_assessments>
+    rdfs:label "risk.risk_assessments" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_risk_assessments> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" .
+
+<urn:dataset:risk.credit_scores>
+    rdfs:label "risk.credit_scores" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_credit_scores> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" .
+
+<urn:dataset:warehouse_staging.stg_customers>
+    rdfs:label "warehouse_staging.stg_customers" ;
+    lin:transformedTo <urn:dataset:warehouse_core.dim_customer> ;
+    lin:transformationType "scd_type2_merge" ;
+    lin:businessRule "Merge core_banking.customers with CRM contacts, credit scores, and risk assessments. Track changes via SCD2." .
+
+<urn:dataset:warehouse_staging.stg_contacts>
+    rdfs:label "warehouse_staging.stg_contacts" ;
+    lin:transformedTo <urn:dataset:warehouse_core.dim_customer> ;
+    lin:transformationType "scd_type2_merge" .
+
+<urn:dataset:warehouse_staging.stg_credit_scores>
+    rdfs:label "warehouse_staging.stg_credit_scores" ;
+    lin:transformedTo <urn:dataset:warehouse_core.dim_customer> ;
+    lin:transformationType "scd_type2_merge" .
+
+<urn:dataset:warehouse_staging.stg_risk_assessments>
+    rdfs:label "warehouse_staging.stg_risk_assessments" ;
+    lin:transformedTo <urn:dataset:warehouse_core.dim_customer> ;
+    lin:transformationType "scd_type2_merge" .
+
+<urn:dataset:warehouse_core.dim_customer>
+    rdfs:label "warehouse_core.dim_customer" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_customer_360> ;
+    lin:transformationType "aggregate_enrich" ;
+    lin:schedule "daily 04:00 UTC" ;
+    lin:businessRule "Aggregate balances, transaction volumes, risk data, complaints, and CRM interactions per customer." .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 3: Liquidity Coverage
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:treasury.liquidity_pool>
+    rdfs:label "treasury.liquidity_pool" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_liquidity_coverage> ;
+    lin:transformationType "lcr_calculation" ;
+    lin:schedule "daily 04:00 UTC" ;
+    lin:businessRule "Calculate LCR = Total HQLA / Net Cash Outflows. Regulatory minimum 100%." ;
+    lin:sla "Must be available by 06:00 UTC for regulatory reporting." .
+
+<urn:dataset:core_banking.account_balances>
+    rdfs:label "core_banking.account_balances" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_liquidity_coverage> ;
+    lin:transformationType "outflow_calculation" ;
+    lin:businessRule "Deposit balances used to calculate stressed outflows by stability category." .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 4: AML Summary
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:risk.aml_alerts>
+    rdfs:label "risk.aml_alerts" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_aml_alerts> ;
+    lin:transformationType "full_extract" .
+
+<urn:dataset:warehouse_staging.stg_aml_alerts>
+    rdfs:label "warehouse_staging.stg_aml_alerts" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_aml_summary> ;
+    lin:transformationType "monthly_aggregate" ;
+    lin:businessRule "Aggregate alerts by month, status, and risk tier. Calculate false positive rates." .
+
+<urn:dataset:risk.aml_cases>
+    rdfs:label "risk.aml_cases" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_aml_summary> ;
+    lin:transformationType "monthly_aggregate" .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 5: GL → P&L
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:gl.gl_entries>
+    rdfs:label "gl.gl_entries" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_gl_entries> ;
+    lin:transformationType "incremental_extract" ;
+    lin:schedule "daily 02:30 UTC" ;
+    lin:businessRule "Extract new entries since last batch_id." .
+
+<urn:dataset:warehouse_staging.stg_gl_entries>
+    rdfs:label "warehouse_staging.stg_gl_entries" ;
+    lin:transformedTo <urn:dataset:warehouse_core.fact_gl_entries> ;
+    lin:transformationType "enrich" ;
+    lin:businessRule "Add net_amount = debit - credit. Validate journal balance." .
+
+<urn:dataset:warehouse_core.fact_gl_entries>
+    rdfs:label "warehouse_core.fact_gl_entries" ;
+    lin:transformedTo <urn:dataset:warehouse_reporting.rpt_daily_pnl> ;
+    lin:transformationType "daily_aggregate" ;
+    lin:businessRule "Aggregate by date, account type, and cost centre for revenue and expense accounts." .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 6: Regulatory Risk Pipeline
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:core_banking.customers>
+    lin:transformedTo <urn:dataset:risk.risk_assessments> ;
+    lin:transformationType "customer_risk_scoring" ;
+    lin:businessRule "CDD/EDD assessment based on customer profile, geography, and product mix." .
+
+<urn:dataset:risk.sanctions_screening>
+    rdfs:label "risk.sanctions_screening" ;
+    lin:transformedTo <urn:dataset:risk.risk_assessments> ;
+    lin:transformationType "sanctions_input" ;
+    lin:businessRule "Sanctions match results feed into overall risk assessment." .
+
+<urn:dataset:risk.risk_assessments>
+    lin:transformedTo <urn:dataset:risk.regulatory_reports> ;
+    lin:transformationType "regulatory_extract" ;
+    lin:businessRule "Risk assessment aggregates feed COREP and internal risk reports." .
+
+# ───────────────────────────────────────────────────────────────
+# Flow 7: Account Dimension
+# ───────────────────────────────────────────────────────────────
+
+<urn:dataset:core_banking.accounts>
+    rdfs:label "core_banking.accounts" ;
+    lin:transformedTo <urn:dataset:warehouse_staging.stg_accounts> ;
+    lin:transformationType "full_extract" ;
+    lin:schedule "daily 02:00 UTC" .
+
+<urn:dataset:warehouse_staging.stg_accounts>
+    rdfs:label "warehouse_staging.stg_accounts" ;
+    lin:transformedTo <urn:dataset:warehouse_core.dim_account> ;
+    lin:transformationType "scd_type2_merge" ;
+    lin:businessRule "Enrich with product attributes. Track status changes via SCD2." .
+
+# ═══════════════════════════════════════════════════════════════
+# NOTE: The following reporting tables have UNDOCUMENTED lineage
+# (intentional gaps for agent testing):
+#   - warehouse_reporting.rpt_product_performance
+#   - warehouse_reporting.rpt_arrears_ageing
+# ═══════════════════════════════════════════════════════════════

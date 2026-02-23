@@ -1,0 +1,280 @@
+# ═══════════════════════════════════════════════════════════════
+# Meridian Community Bank — Agentic AI Test Scenarios
+# ═══════════════════════════════════════════════════════════════
+
+categories:
+  - id: A
+    name: Metadata Discovery
+    description: Tests the agent's ability to discover datasets, owners, tags, and glossary terms
+
+  - id: B
+    name: Data Quality & Governance
+    description: Tests the agent's ability to find and diagnose data quality issues
+
+  - id: C
+    name: Ontology-Powered Queries
+    description: Tests the agent's ability to use the ontology to understand business concepts
+
+  - id: D
+    name: Cross-Layer Analysis
+    description: Tests the agent's ability to combine metadata, ontology, and real data queries
+
+  - id: E
+    name: Impact Analysis
+    description: Tests the agent's ability to trace lineage and assess change impact
+
+scenarios:
+
+  # ─── Category A: Metadata Discovery ──────────────────────
+
+  - id: A1
+    category: A
+    question: "What datasets contain customer PII?"
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "core_banking.customers"
+      - "core_banking.addresses"
+      - "crm.contacts"
+      - "crm.marketing_consents"
+      - "warehouse_core.dim_customer"
+    difficulty: easy
+
+  - id: A2
+    question: "Who owns the AML-related datasets?"
+    category: A
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "Priya Sharma"
+      - "Head of Risk Data"
+    difficulty: easy
+
+  - id: A3
+    question: "Show me all tables that feed the liquidity coverage report"
+    category: A
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "treasury.liquidity_pool"
+      - "core_banking.account_balances"
+    difficulty: medium
+
+  - id: A4
+    question: "What business glossary terms are associated with regulatory reporting?"
+    category: A
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "LCR"
+      - "COREP"
+      - "FINREP"
+      - "CET1 Ratio"
+    difficulty: easy
+
+  - id: A5
+    question: "List all datasets tagged as both Sensitive and Regulatory"
+    category: A
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "risk.aml_alerts"
+      - "risk.aml_cases"
+      - "risk.sanctions_screening"
+      - "risk.risk_assessments"
+    difficulty: easy
+
+  # ─── Category B: Data Quality & Governance ───────────────
+
+  - id: B1
+    question: "Are there any data quality issues in the warehouse?"
+    category: B
+    expected_tools: [metadata_search, sql_query]
+    expected_answer_contains:
+      - "stale"
+      - "credit_scores"
+      - "risk_assessments"
+      - "aml_alerts"
+    difficulty: medium
+
+  - id: B2
+    question: "Which datasets haven't been refreshed in the last 7 days?"
+    category: B
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "stg_credit_scores"
+      - "stg_risk_assessments"
+      - "stg_aml_alerts"
+      - "2024-12-20"
+    difficulty: medium
+
+  - id: B3
+    question: "What percentage of customer addresses are missing postcodes?"
+    category: B
+    expected_tools: [sql_query]
+    expected_answer_type: numeric
+    expected_answer_range: [0.5, 1.0]
+    sql_hint: "SELECT ROUND(COUNT(*) FILTER (WHERE postcode IS NULL)::numeric / COUNT(*) * 100, 2) FROM core_banking.addresses"
+    difficulty: easy
+
+  - id: B4
+    question: "Check if the General Ledger balances. Are there any imbalanced journal batches?"
+    category: B
+    expected_tools: [sql_query]
+    expected_answer_contains:
+      - "BATCH-2024-ERR-001"
+      - "500"
+      - "imbalance"
+    sql_hint: "SELECT batch_id, SUM(debit_amount) - SUM(credit_amount) FROM gl.gl_entries GROUP BY batch_id HAVING ABS(SUM(debit_amount) - SUM(credit_amount)) > 0.01"
+    difficulty: medium
+
+  - id: B5
+    question: "Are there any orphaned accounts that don't link to a valid customer?"
+    category: B
+    expected_tools: [sql_query]
+    expected_answer_type: numeric
+    expected_answer_value: 15
+    sql_hint: "SELECT COUNT(*) FROM core_banking.accounts a LEFT JOIN core_banking.customers c ON a.customer_id = c.customer_id WHERE c.customer_id IS NULL"
+    difficulty: medium
+
+  - id: B6
+    question: "How many transactions have a zero amount? What could this indicate?"
+    category: B
+    expected_tools: [sql_query]
+    expected_answer_type: numeric
+    expected_answer_value: 100
+    difficulty: easy
+
+  # ─── Category C: Ontology-Powered Queries ────────────────
+
+  - id: C1
+    question: "What does the bank mean by 'Customer'? Where is this concept stored physically?"
+    category: C
+    expected_tools: [ontology_query, metadata_search]
+    expected_answer_contains:
+      - "Party"
+      - "Individual"
+      - "Organisation"
+      - "core_banking.customers"
+      - "crm.contacts"
+      - "warehouse_core.dim_customer"
+    difficulty: medium
+
+  - id: C2
+    question: "How is 'Credit Risk' related to 'Customer' in our data model?"
+    category: C
+    expected_tools: [ontology_query]
+    expected_answer_contains:
+      - "hasRiskAssessment"
+      - "hasCreditScore"
+      - "CreditRisk"
+      - "credit_scores"
+      - "risk_assessments"
+    difficulty: medium
+
+  - id: C3
+    question: "Map the business concept 'Transaction' to all its physical implementations"
+    category: C
+    expected_tools: [ontology_query]
+    expected_answer_contains:
+      - "core_banking.transactions"
+      - "payments.payment_instructions"
+      - "payments.payment_receipts"
+      - "warehouse_core.fact_transactions"
+    difficulty: medium
+
+  - id: C4
+    question: "What regulatory reports does the bank produce, and what data feeds them?"
+    category: C
+    expected_tools: [ontology_query, metadata_search]
+    expected_answer_contains:
+      - "COREP"
+      - "FINREP"
+      - "LCR"
+      - "risk_assessments"
+      - "liquidity_pool"
+    difficulty: hard
+
+  # ─── Category D: Cross-Layer Analysis ────────────────────
+
+  - id: D1
+    question: "How many customers are flagged as high-risk and what is their total outstanding loan balance?"
+    category: D
+    expected_tools: [sql_query]
+    expected_answer_type: numeric
+    difficulty: hard
+
+  - id: D2
+    question: "Show me the complete data lineage for a customer's loan, from application through to the regulatory capital report"
+    category: D
+    expected_tools: [metadata_search, ontology_query]
+    expected_answer_contains:
+      - "risk.credit_applications"
+      - "core_banking.accounts"
+      - "warehouse_core.dim_account"
+      - "rpt_regulatory_capital"
+    difficulty: hard
+
+  - id: D3
+    question: "Compare the number of AML alerts in Q3 vs Q4 2024, and identify which alert types are driving any increase"
+    category: D
+    expected_tools: [sql_query]
+    expected_answer_type: comparative
+    sql_hint: "SELECT DATE_TRUNC('quarter', alert_date) as quarter, alert_type, COUNT(*) FROM risk.aml_alerts GROUP BY 1, 2 ORDER BY 1, 3 DESC"
+    difficulty: hard
+
+  - id: D4
+    question: "Our liquidity coverage report shows different numbers than expected. Trace back through the lineage to identify which source data might be stale"
+    category: D
+    expected_tools: [metadata_search, sql_query]
+    expected_answer_contains:
+      - "stale"
+      - "treasury.liquidity_pool"
+      - "account_balances"
+    difficulty: hard
+
+  - id: D5
+    question: "Find all customers who have both a complaint and an AML alert. What is their average credit score?"
+    category: D
+    expected_tools: [sql_query]
+    expected_answer_type: numeric
+    difficulty: hard
+
+  # ─── Category E: Impact Analysis ─────────────────────────
+
+  - id: E1
+    question: "If we change the schema of core_banking.customers, what downstream reports would be affected?"
+    category: E
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "stg_customers"
+      - "dim_customer"
+      - "rpt_customer_360"
+      - "risk.risk_assessments"
+    difficulty: medium
+
+  - id: E2
+    question: "We need to deprecate the sort_code field. What systems and reports depend on it?"
+    category: E
+    expected_tools: [metadata_search, ontology_query]
+    expected_answer_contains:
+      - "core_banking.accounts"
+      - "warehouse_core.dim_account"
+      - "payments"
+    difficulty: medium
+
+  - id: E3
+    question: "Which reporting tables have no documented upstream lineage? This could be a governance risk."
+    category: E
+    expected_tools: [metadata_search]
+    expected_answer_contains:
+      - "rpt_product_performance"
+      - "rpt_arrears_ageing"
+    difficulty: medium
+
+  - id: E4
+    question: "If the risk engine goes offline for maintenance, which regulatory reports would be impacted and what is the SLA for recovery?"
+    category: E
+    expected_tools: [metadata_search, ontology_query]
+    expected_answer_contains:
+      - "aml_alerts"
+      - "risk_assessments"
+      - "credit_scores"
+      - "rpt_aml_summary"
+      - "rpt_regulatory_capital"
+    difficulty: hard
