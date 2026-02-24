@@ -32,9 +32,9 @@ else
 fi
 
 # --- Start MCP server ---
-echo "Starting MCP server (read-only, SSE transport on :8000)..."
+echo "Starting MCP server (read-only, SSE transport on 0.0.0.0:8000)..."
 DATABASE_URI="postgresql://${DB_USER}:${POSTGRES_PASSWORD}@localhost:5432/${DB_NAME}" \
-    postgres-mcp --access-mode=restricted --transport=sse &
+    postgres-mcp --access-mode=restricted --transport=sse --sse-host 0.0.0.0 &
 MCP_PID=$!
 
 echo "Meridian Bank ready:"
